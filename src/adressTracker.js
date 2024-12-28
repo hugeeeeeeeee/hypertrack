@@ -21,20 +21,25 @@ class PositionTracker {
     }
 
     async checkChanges() {
+        console.log('Checking changes...');
+        console.log(this.trackedWallets);
         for (const [address, oldPositions] of this.trackedWallets.entries()) {
             const newPositions = await getPositions(address);
             
             if (JSON.stringify(oldPositions) !== JSON.stringify(newPositions)) {
 
                 const newTrades = newPositions.filter(newPos => 
-                    !oldPositions.some(oldPos => oldPos.coin === newPos.coin));
+                    !oldPositions.some(oldPos => oldPos.position.coin === newPos.position.coin));
                 
                 const closedTrades = oldPositions.filter(oldPos => 
-                    !newPositions.some(newPos => newPos.coin === oldPos.coin));
+                    !newPositions.some(newPos => newPos.position.coin === oldPos.position.coin));
 
                 if (this.notificationChannel) {
                     this.notifyChanges(address, newTrades, closedTrades);
                 }
+
+                console.log('New trades: ', JSON.stringify(newTrades, null, 2));
+                console.log('Closed trades: ', JSON.stringify(closedTrades, null, 2));
 
                 this.trackedWallets.set(address, newPositions);
             }
@@ -47,7 +52,7 @@ class PositionTracker {
             const direction = parseFloat(trade.position.szi) > 0 ? "LONG" : "SHORT";
             const message = `🔔 New position for ${address.slice(0, 6)}...${address.slice(-4)}:\n` +
                 `\`\`\`ml\n` +
-                `${direction} ${trade.coin}\n` +
+                `${direction} ${trade.position.coin}\n` +
                 `Size: ${Math.abs(trade.position.szi).toFixed(4)}\n` +
                 `Entry Price: ${parseFloat(trade.position.entryPx).toFixed(2)}$\n` +
                 `\`\`\``;
@@ -58,10 +63,14 @@ class PositionTracker {
         for (const trade of closedTrades) {
             const message = `🔔 Position closed for ${address.slice(0, 6)}...${address.slice(-4)}:\n` +
                 `\`\`\`ml\n` +
-                `${trade.coin} position closed\n` +
+                `${trade.position.coin} position closed\n` +
                 `\`\`\``;
             this.notificationChannel.send(message);
         }
+    }
+
+    listTrackedWallets() {
+        return Array.from(this.trackedWallets.keys());
     }
 
 }

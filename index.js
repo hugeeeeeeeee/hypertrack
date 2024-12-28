@@ -85,6 +85,12 @@ client.on('messageCreate', async (message) => {
         await tracker.untrackWallet(address);
         message.reply(`✅ Now untracking address: ${address}`);
     }
+
+    if (message.content.startsWith('!list')) {
+        console.log('List command received');
+        const addresses = tracker.listTrackedWallets();
+        message.reply(`🕵️‍♂️ Tracked addresses: ${addresses.join(', ')}`);
+    }
 });
 
 client.login(CONFIG.TOKEN);
