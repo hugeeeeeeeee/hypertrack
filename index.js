@@ -1,6 +1,9 @@
 import {Client, GatewayIntentBits} from "discord.js";
 import {CONFIG} from "./config.js";
 import {getPositions} from "./src/hyperliquidAPI.js";
+import {tracker} from "./src/adressTracker.js";
+import {handleTrackCommand} from "./src/track.js";
+import {handleUntrackCommand} from "./src/track.js";
 
 const client = new Client({
     intents: [
@@ -12,6 +15,12 @@ const client = new Client({
 
 client.once('ready', () => {
     console.log('Bot is ready!');
+
+    tracker.setNotificationChannel(client.channels.cache.get(CONFIG.NOTIFICATION_CHANNEL));
+    console.log('Notification channel set : ' + CONFIG.NOTIFICATION_CHANNEL);
+
+    setInterval( () => tracker.checkChanges(), CONFIG.CHECK_INTERVAL);
+    console.log('Interval set to ' + CONFIG.CHECK_INTERVAL + 'ms');
 });
 
 
@@ -56,14 +65,30 @@ client.on('messageCreate', async (message) => {
             summary += `\n⏰ *Last updated at ${timestamp}*`;
 
             await message.reply(summary);
-        } catch (error) {
+        } 
+        catch (error) {
             console.error('Error:', error);
             await message.reply('❌ Error fetching positions. Please verify the address and try again.');
         }
     }
+
+    if (message.content.startsWith('!track')) {
+            console.log('Track command received');
+            const address = message.content.split(' ')[1];
+            await tracker.trackWallet(address);
+            message.reply(`✅ Now tracking address: ${address}`);
+    }
+
+    if (message.content.startsWith('!untrack')) {
+        console.log('Untrack command received');
+        const address = message.content.split(' ')[1];
+        await tracker.untrackWallet(address);
+        message.reply(`✅ Now untracking address: ${address}`);
+    }
 });
 
 client.login(CONFIG.TOKEN);
+
 
 
 
