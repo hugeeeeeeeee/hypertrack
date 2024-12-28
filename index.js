@@ -17,6 +17,9 @@ client.once('ready', () => {
     console.log('Bot is ready!');
 
     tracker.setNotificationChannel(client.channels.cache.get(CONFIG.NOTIFICATION_CHANNEL));
+    if (!tracker.notificationChannel) {
+        console.error("Le bot n'a pas trouvé le canal.");
+    }
     console.log('Notification channel set : ' + CONFIG.NOTIFICATION_CHANNEL);
 
     setInterval( () => tracker.checkChanges(), CONFIG.CHECK_INTERVAL);
@@ -75,8 +78,10 @@ client.on('messageCreate', async (message) => {
     if (message.content.startsWith('!track')) {
             console.log('Track command received');
             const address = message.content.split(' ')[1];
-            await tracker.trackWallet(address);
-            message.reply(`✅ Now tracking address: ${address}`);
+            const nickname = message.content.split(' ')[2];
+            await tracker.trackWallet(address, nickname);
+            const response = nickname ? `✅ Now tracking address: ${nickname} (${address})` : `✅ Now tracking address: ${address}`;
+            message.reply(response);
     }
 
     if (message.content.startsWith('!untrack')) {
@@ -89,7 +94,8 @@ client.on('messageCreate', async (message) => {
     if (message.content.startsWith('!list')) {
         console.log('List command received');
         const addresses = tracker.listTrackedWallets();
-        message.reply(`🕵️‍♂️ Tracked addresses: ${addresses.join(', ')}`);
+        const response = addresses.length > 0 ? `🕵️‍♂️ Tracked addresses: ${addresses.join(', ')}` : '🕵️‍♂️ No tracked addresses';
+        message.reply(response);
     }
 });
 
