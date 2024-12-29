@@ -79,9 +79,15 @@ client.on('messageCreate', async (message) => {
             console.log('Track command received');
             const address = message.content.split(' ')[1];
             const nickname = message.content.split(' ')[2];
-            await tracker.trackWallet(address, nickname);
-            const response = nickname ? `✅ Now tracking address: ${nickname} (${address})` : `✅ Now tracking address: ${address}`;
-            message.reply(response);
+            if (!address) {
+                return message.reply('Please provide an address');
+            }
+
+            else {
+                await tracker.trackWallet(address, nickname);
+                const response = nickname ? `✅ Now tracking address: ${nickname} (${address})` : `✅ Now tracking address: ${address}`;
+                message.reply(response);
+            }
     }
 
     if (message.content.startsWith('!untrack')) {
