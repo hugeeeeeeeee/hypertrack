@@ -4,6 +4,8 @@ import {getPositions} from "./src/hyperliquidAPI.js";
 import {tracker} from "./src/adressTracker.js";
 import {handleTrackCommand} from "./src/track.js";
 import {handleUntrackCommand} from "./src/track.js";
+import {fundingTracker} from "./src/fundingTracker.js";
+import {getFundingRates} from "./src/hyperliquidAPI.js";
 
 const client = new Client({
     intents: [
@@ -24,6 +26,10 @@ client.once('ready', () => {
 
     setInterval( () => tracker.checkChanges(), CONFIG.CHECK_INTERVAL);
     console.log('Interval set to ' + CONFIG.CHECK_INTERVAL + 'ms');
+
+    fundingTracker.setNotificationChannel(client.channels.cache.get(CONFIG.NOTIFICATION_CHANNEL));
+    setInterval( () => fundingTracker.checkFundingAlerts(), CONFIG.CHECK_INTERVAL_FUNDING);
+    console.log('Interval for funding alerts set to ' + CONFIG.CHECK_INTERVAL_FUNDING + 'ms');
 });
 
 
@@ -102,6 +108,34 @@ client.on('messageCreate', async (message) => {
         const addresses = tracker.listTrackedWallets();
         const response = addresses.length > 0 ? `🕵️‍♂️ Tracked addresses: ${addresses.join(', ')}` : '🕵️‍♂️ No tracked addresses';
         message.reply(response);
+    }
+
+    if (message.content.startsWith('!trackfunding')) {
+        console.log('Track funding command received');
+        const coin = message.content.split(' ')[1];
+        const treshhold = message.content.split(' ')[2];
+        fundingTracker.addAlert(coin, treshhold);
+        message.reply(`✅ Now tracking funding alerts for ${coin} at ${treshhold}%`);
+    }
+
+    if (message.content.startsWith('!untrackfunding')) {
+        console.log('Untrack funding command received');
+        const coin = message.content.split(' ')[1];
+        fundingTracker.removeAlert(coin);
+        message.reply(`✅ Now untracking funding alerts for ${coin}`);
+    }
+
+    if (message.content.startsWith('!listfunding')) {
+        console.log('List funding command received');
+        const alerts = fundingTracker.listAlerts();
+        message.reply(`🚨 Funding alerts: ${alerts}`);
+    }
+    
+    if (message.content.startsWith('!funding')) {
+        console.log('Funding command received');
+        const coin = message.content.split(' ')[1];
+        const fundingRate = await getFundingRates(coin);
+        message.reply(`🚨 Funding rate for ${coin}: ${fundingRate}% Annualized`);
     }
 });
 

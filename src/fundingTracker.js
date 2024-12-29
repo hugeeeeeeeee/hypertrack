@@ -11,7 +11,11 @@ class FundingTracker {
     }
 
     addAlert(coin, treshhold, above = true) {
-        this.alerts.set(coin.toUpperCase(), {treshhold: parseFloat(treshhold), above: above});
+        this.alerts.set(coin.toUpperCase(), {
+            treshhold: parseFloat(treshhold), 
+            above: above, 
+            lastState: false
+        });
     }
 
     removeAlert(coin) {
@@ -21,17 +25,30 @@ class FundingTracker {
     checkFundingAlerts() {
         for (const [coin, alert] of this.alerts.entries()) {
             const fundingRate = getFundingRates(coin);
-            if (alert.above && fundingRate > alert.treshhold) {
+            if (alert.above && fundingRate > alert.treshhold && !alert.lastState) {
                 this.notifyAlert(coin, alert.treshhold, fundingRate);
+                alert.lastState = true;
+            } else if (!alert.above && fundingRate < alert.treshhold && alert.lastState) {
+                this.notifyAlert(coin, alert.treshhold, fundingRate);
+                alert.lastState = false;
             }
         }
     }
 
     notifyAlert(coin, treshhold, fundingRate) {
         if (this.notificationChannel) {
-            this.notificationChannel.send(`🚨 Alert: ${coin} is above ${treshhold} with a funding rate of ${fundingRate} Annualized`);
+            this.notificationChannel.send(`🚨 Alert: ${coin} is above ${treshhold}% with a funding rate of ${fundingRate}% Annualized`);
         }
     }
 
-
+    listAlerts() {
+        const alerts = [];
+        this.alerts.forEach((alert, coin) => {
+            const status = alert.lastState ? '↗️' : '↘️';
+            alerts.push(`${coin}: ${status} ${alert.treshhold}% (${alert.above ? 'above' : 'below'})`);
+        });
+        return alerts.join('\n');
+    }
 }
+
+export const fundingTracker = new FundingTracker();

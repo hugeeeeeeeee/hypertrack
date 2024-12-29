@@ -47,7 +47,7 @@ export async function getFundingRates(coin) {
         for (let i = 0; i < universe.length; i++) {
             if (universe[i].name === coin) {
                 console.log(assets[i].funding);
-                return parseFloat(assets[i].funding*24*365);
+                return parseFloat(assets[i].funding*24*365*100);
             }
         }
 
@@ -57,8 +57,3 @@ export async function getFundingRates(coin) {
     }
 }
 
-(async () => {
-    console.log('Démarrage du test...');
-    const result = await getFundingRates("BTC");
-    console.log('Résultat:', result);
-})();
