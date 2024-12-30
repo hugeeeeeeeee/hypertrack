@@ -81,7 +81,7 @@ client.on('messageCreate', async (message) => {
         }
     }
 
-    if (message.content.startsWith('!track')) {
+    if (message.content.startsWith('!track ')) {
             console.log('Track command received');
             const address = message.content.split(' ')[1];
             const nickname = message.content.split(' ')[2];
@@ -103,7 +103,7 @@ client.on('messageCreate', async (message) => {
         message.reply(`✅ Now untracking address: ${address}`);
     }
 
-    if (message.content.startsWith('!list')) {
+    if (message.content == '!list') {
         console.log('List command received');
         const addresses = tracker.listTrackedWallets();
         const response = addresses.length > 0 ? `🕵️‍♂️ Tracked addresses: ${addresses.join(', ')}` : '🕵️‍♂️ No tracked addresses';
@@ -135,7 +135,7 @@ client.on('messageCreate', async (message) => {
         console.log('Funding command received');
         const coin = message.content.split(' ')[1];
         const fundingRate = await getFundingRates(coin);
-        message.reply(`🚨 Funding rate for ${coin}: ${fundingRate}% Annualized`);
+        message.reply(`🚨 Funding rate for ${coin}: ${fundingRate.toFixed(4)}% Annualized`);
     }
 });
 

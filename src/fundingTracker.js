@@ -1,4 +1,5 @@
 import { CONFIG } from '../config.js';
+import { getFundingRates } from './hyperliquidAPI.js';
 
 class FundingTracker {
     constructor() {
@@ -37,7 +38,7 @@ class FundingTracker {
 
     notifyAlert(coin, treshhold, fundingRate) {
         if (this.notificationChannel) {
-            this.notificationChannel.send(`🚨 Alert: ${coin} is above ${treshhold}% with a funding rate of ${fundingRate}% Annualized`);
+            this.notificationChannel.send(`🚨 Alert: ${coin} is above ${treshhold}% with a funding rate of ${fundingRate.toFixed(4)}% Annualized`);
         }
     }
 
